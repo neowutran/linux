@@ -696,16 +696,24 @@ unsigned long native_calibrate_tsc(void)
 static unsigned long cpu_khz_from_cpuid(void)
 {
 	unsigned int eax_base_mhz, ebx_max_mhz, ecx_bus_mhz, edx;
+        pr_err("ENTERING CPU_KHZ_FROM_CPUID\n");
 
+        
 	if (boot_cpu_data.x86_vendor != X86_VENDOR_INTEL)
 		return 0;
 
+	pr_err("CPU_KHZ_FROM_CPUID: IT IS INTEL CPU\n");
+
 	if (boot_cpu_data.cpuid_level < 0x16)
 		return 0;
+	
+        pr_err("CPU_KHZ_FROM_CPUID: IS CPUID LEVEL IS OK\n");
 
 	eax_base_mhz = ebx_max_mhz = ecx_bus_mhz = edx = 0;
 
 	cpuid(0x16, &eax_base_mhz, &ebx_max_mhz, &ecx_bus_mhz, &edx);
+	
+        pr_err("CPU_KHZ_FROM_CPUID: VALUE IS %u\n", eax_base_mhz);
 
 	return eax_base_mhz * 1000;
 }
@@ -868,11 +876,15 @@ static unsigned long pit_hpet_ptimer_calibrate_cpu(void)
  */
 unsigned long native_calibrate_cpu_early(void)
 {
+	pr_err("ENTERING NATIVE_CALIBRATE_CPU\n");
 	unsigned long flags, fast_calibrate = cpu_khz_from_cpuid();
 
-	if (!fast_calibrate)
+	if (!fast_calibrate){
+		pr_err("FAST_CALIBRATE USING CPUID FAILED. TRYING CPU_KHZ_FROM_MSR\n");
 		fast_calibrate = cpu_khz_from_msr();
+	}
 	if (!fast_calibrate) {
+		pr_err("FAST_CALIBRATE USING CPUID AND MSR FAILED. TRYING QUICK_PIT_CALIBRATE\n");
 		local_irq_save(flags);
 		fast_calibrate = quick_pit_calibrate();
 		local_irq_restore(flags);
