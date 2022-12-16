@@ -165,22 +165,27 @@ static const struct x86_cpu_id tsc_msr_cpu_ids[] = {
  */
 unsigned long cpu_khz_from_msr(void)
 {
-	u32 lo, hi, ratio, freq, tscref;
+	pr_err("ENTERING CPU_KHZ_FROM_MSR");
+	u32 lo, hi, ratio;
 	const struct freq_desc *freq_desc;
 	const struct x86_cpu_id *id;
 	const struct muldiv *md;
-	unsigned long res;
+	unsigned long res, freq, tscref;
 	int index;
 
 	id = x86_match_cpu(tsc_msr_cpu_ids);
 	if (!id)
 		return 0;
+	
+        pr_err("CPU_KHZ_FROM_MSR: matched cpu");
 
 	freq_desc = (struct freq_desc *)id->driver_data;
 	if (freq_desc->use_msr_plat) {
+		pr_err("CPU_KHZ_FROM_MSR: use_msr_plat");
 		rdmsr(MSR_PLATFORM_INFO, lo, hi);
 		ratio = (lo >> 8) & 0xff;
 	} else {
+		pr_err("CPU_KHZ_FROM_MSR: no use_msr_plat");
 		rdmsr(MSR_IA32_PERF_STATUS, lo, hi);
 		ratio = (hi >> 8) & 0x1f;
 	}
@@ -195,6 +200,7 @@ unsigned long cpu_khz_from_msr(void)
 	 * part of muldiv, in that case the else will set freq and res to 0.
 	 */
 	if (md->divider) {
+		pr_err("CPU_KHZ_FROM_MSR: multiplier");
 		tscref = TSC_REFERENCE_KHZ * md->multiplier;
 		freq = DIV_ROUND_CLOSEST(tscref, md->divider);
 		/*
@@ -203,6 +209,7 @@ unsigned long cpu_khz_from_msr(void)
 		 */
 		res = DIV_ROUND_CLOSEST(tscref * ratio, md->divider);
 	} else {
+		pr_err("CPU_KHZ_FROM_MSR: no multiplier");
 		freq = freq_desc->freqs[index];
 		res = freq * ratio;
 	}
