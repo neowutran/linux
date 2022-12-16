@@ -38,7 +38,7 @@ static unsigned long xen_tsc_khz(void)
 {
 	struct pvclock_vcpu_time_info *info =
 		&HYPERVISOR_shared_info->vcpu_info[0].time;
-
+	pr_err("XEN_TSC_KHZ");
 	setup_force_cpu_cap(X86_FEATURE_TSC_KNOWN_FREQ);
 	return pvclock_tsc_khz(info);
 }
@@ -484,6 +484,7 @@ static void __init xen_time_init(void)
 	if (xen_initial_domain())
 		xen_clocksource.rating = 275;
 
+	pr_err("XEN_TIME_INIT !!!!");
 	clocksource_register_hz(&xen_clocksource, NSEC_PER_SEC);
 
 	if (HYPERVISOR_vcpu_op(VCPUOP_stop_periodic_timer, xen_vcpu_nr(cpu),
