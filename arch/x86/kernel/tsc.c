@@ -1449,19 +1449,30 @@ device_initcall(init_tsc_clocksource);
 
 static bool __init determine_cpu_tsc_frequencies(bool early)
 {
+	pr_err("DETERMINE_CPU_TSC_FREQENCIES: START");
 	/* Make sure that cpu and tsc are not already calibrated */
 	WARN_ON(cpu_khz || tsc_khz);
 
 	if (early) {
+		pr_err("DETERMINE_CPU_TSC_FREQENCIES: EARLY");
 		cpu_khz = x86_platform.calibrate_cpu();
-		if (tsc_early_khz)
+		if (tsc_early_khz){
+			pr_err("DETERMINE_CPU_TSC_FREQENCIES: TSC_EARLY_KHZ");
 			tsc_khz = tsc_early_khz;
-		else
+		}else{
+			pr_err("DETERMINE_CPU_TSC_FREQENCIES: NO TSC_EARLY_KHZ");
 			tsc_khz = x86_platform.calibrate_tsc();
+		}
+		pr_err("DETERMINE_CPU_TSC_FREQENCIES: cpu %u ; tsc: %u", cpu_khz, tsc_khz);
+
+        
 	} else {
+		pr_err("DETERMINE_CPU_TSC_FREQENCIES: NO EARLY");
 		/* We should not be here with non-native cpu calibration */
 		WARN_ON(x86_platform.calibrate_cpu != native_calibrate_cpu);
 		cpu_khz = pit_hpet_ptimer_calibrate_cpu();
+		pr_err("DETERMINE_CPU_TSC_FREQENCIES: cpu %u", cpu_khz);
+
 	}
 
 	/*
