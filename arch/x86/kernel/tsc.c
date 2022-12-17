@@ -623,12 +623,15 @@ unsigned long native_calibrate_tsc(void)
 {
 	unsigned int eax_denominator, ebx_numerator, ecx_hz, edx;
 	unsigned int crystal_khz;
+	pr_err("native_calibrate_tsc: entry");
 
 	if (boot_cpu_data.x86_vendor != X86_VENDOR_INTEL)
 		return 0;
 
 	if (boot_cpu_data.cpuid_level < 0x15)
 		return 0;
+
+	pr_err("native_calibrate_tsc: cpuid_level ok and vendor intel");
 
 	eax_denominator = ebx_numerator = ecx_hz = edx = 0;
 
@@ -637,6 +640,10 @@ unsigned long native_calibrate_tsc(void)
 
 	if (ebx_numerator == 0 || eax_denominator == 0)
 		return 0;
+	
+        pr_err("native_calibrate_tsc: ebx and eax not equals to 0");
+	pr_err("native_calibrate_tsc: ecx_hz: %u", ecx_hz);
+
 
 	crystal_khz = ecx_hz / 1000;
 
@@ -663,16 +670,22 @@ unsigned long native_calibrate_tsc(void)
 	 * by considering the crystal ratio and the CPU speed.
 	 */
 	if (crystal_khz == 0 && boot_cpu_data.cpuid_level >= 0x16) {
+		pr_err("native_calibrate_tsc: calculate clock, overflow possible here");
 		unsigned int eax_base_mhz, ebx, ecx, edx;
 
 		cpuid(0x16, &eax_base_mhz, &ebx, &ecx, &edx);
+		      
 		crystal_khz = eax_base_mhz * 1000 *
 			eax_denominator / ebx_numerator;
+		pr_err("native_calibrate_tsc: %u * 1000 * %u / %u = %u", eax_base_mhz, eax_denominator,ebx_numerator, crystal_khz);
 	}
 
 	if (crystal_khz == 0)
 		return 0;
+	
+        pr_err("native_calibrate_tsc: PASS1");
 
+        
 	/*
 	 * For Atom SoCs TSC is the only reliable clocksource.
 	 * Mark TSC reliable so no watchdog on it.
@@ -688,7 +701,11 @@ unsigned long native_calibrate_tsc(void)
 	 * timer later.
 	 */
 	lapic_timer_period = crystal_khz * 1000 / HZ;
+	pr_err("native_calibrate_tsc: overflow possible 2: %u * 1000 / %u = %u",crystal_khz, HZ,lapic_timer_period );
+
 #endif
+        pr_err("native_calibrate_tsc: overflow possible 3: %u * %u / %u",crystal_khz, ebx_numerator,eax_denominator );
+
 
 	return crystal_khz * ebx_numerator / eax_denominator;
 }
