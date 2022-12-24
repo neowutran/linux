@@ -598,6 +598,9 @@ void vhost_dev_reset_owner(struct vhost_dev *dev, struct vhost_iotlb *umem)
 	int i;
 
 	vhost_dev_cleanup(dev);
+        
+	/* Restore memory to default empty mapping. */
+      	INIT_LIST_HEAD(&umem->list);
 
 	dev->umem = umem;
 	/* We don't need VQ locks below since vhost_dev_cleanup makes sure
